@@ -63,8 +63,8 @@ The dashboard now includes a historical price visualization, a forecast estimate
 GitHub Actions runs Python 3.11 dependency installation, Python bytecode compilation, and the complete pytest suite on pushes and pull requests targeting `main`. The suite covers analytics, forecasting, ML, research feature fusion, data quality, portfolio risk, API contracts, and edge cases.
 
 
-## Production hardening
-- Configurable CORS origins via `CORS_ORIGINS`
+## One-command local startup
+Run the entire application from the repository root with one command:\n\n`python run.py`\n\nThe launcher starts FastAPI and the React/Vite frontend together, installs frontend dependencies automatically on first run, and stops both services with one `Ctrl+C`. The dashboard is available at `http://127.0.0.1:5173` and the API at `http://127.0.0.1:8000`.\n\nYou can also use `npm run dev` or `npm start` from the repository root after Python and Node.js are installed.\n\n## Production hardening\n- Configurable CORS origins via `CORS_ORIGINS`
 - Security response headers
 - `/health` and `/ready` endpoints
 - Bounded research and portfolio API inputs
