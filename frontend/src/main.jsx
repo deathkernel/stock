@@ -272,14 +272,32 @@ function App() {
           )}
 
           {data && (
-            <div className="chart-underlay-grid">
-              <div className="mini-stat"><span>Open</span><strong>{Number(history.at(-1)?.open || 0).toFixed(2)}</strong></div>
-              <div className="mini-stat"><span>High</span><strong>{Number(history.at(-1)?.high || 0).toFixed(2)}</strong></div>
-              <div className="mini-stat"><span>Low</span><strong>{Number(history.at(-1)?.low || 0).toFixed(2)}</strong></div>
-              <div className="mini-stat"><span>Close</span><strong>{lastPrice.toFixed(2)}</strong></div>
-              <div className="mini-stat"><span>Forecast</span><strong>{Number(forecast?.point || 0).toFixed(2)}</strong></div>
-              <div className="mini-stat"><span>Range</span><strong>{Number(forecast?.lower || 0).toFixed(2)}–{Number(forecast?.upper || 0).toFixed(2)}</strong></div>
-            </div>
+            <>
+              <div className="chart-underlay-grid">
+                <div className="mini-stat"><span>Open</span><strong>{Number(history.at(-1)?.open || 0).toFixed(2)}</strong></div>
+                <div className="mini-stat"><span>High</span><strong>{Number(history.at(-1)?.high || 0).toFixed(2)}</strong></div>
+                <div className="mini-stat"><span>Low</span><strong>{Number(history.at(-1)?.low || 0).toFixed(2)}</strong></div>
+                <div className="mini-stat"><span>Close</span><strong>{lastPrice.toFixed(2)}</strong></div>
+                <div className="mini-stat"><span>Forecast</span><strong>{Number(forecast?.point || 0).toFixed(2)}</strong></div>
+                <div className="mini-stat"><span>Range</span><strong>{Number(forecast?.lower || 0).toFixed(2)}–{Number(forecast?.upper || 0).toFixed(2)}</strong></div>
+              </div>
+              {data.research_levels && (
+                <div className="research-levels">
+                  <div className="levels-heading"><strong>Quantitative levels</strong><span>ATR + model forecast · research only</span></div>
+                  <div className="levels-grid">
+                    <div className="level-card entry"><span>Entry zone</span><strong>{data.research_levels.entry_zone.low.toFixed(2)} – {data.research_levels.entry_zone.high.toFixed(2)}</strong></div>
+                    <div className="level-card risk"><span>Invalidation</span><strong>{data.research_levels.invalidation == null ? "—" : data.research_levels.invalidation.toFixed(2)}</strong></div>
+                    <div className="level-card target"><span>Model target</span><strong>{Number(data.research_levels.target).toFixed(2)}</strong></div>
+                    <div className="level-card rr"><span>Risk / reward</span><strong>{Number(data.research_levels.risk_reward).toFixed(2)}R</strong></div>
+                  </div>
+                  <div className="levels-meta">
+                    <span>ATR(14) {Number(data.research_levels.atr_14).toFixed(2)}</span>
+                    <span>Risk {(Number(data.research_levels.risk_pct) * 100).toFixed(2)}%</span>
+                    <span>Target {(Number(data.research_levels.target_return) * 100).toFixed(2)}%</span>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </section>
 
