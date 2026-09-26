@@ -1,6 +1,8 @@
 import asyncio
 from statistics import median
 
+import pandas as pd
+
 from backend.providers.alpha_vantage import AlphaVantageProvider
 from backend.providers.twelve_data import TwelveDataProvider
 from backend.providers.finnhub import FinnhubProvider
@@ -58,9 +60,10 @@ class ProviderOrchestrator:
             relative_distance = abs(latest - consensus_price) / max(abs(consensus_price), 1e-9)
             agreement = max(0.0, 1.0 - min(relative_distance / 0.03, 1.0))
             completeness = min(len(result.data) / max(outputsize, 1), 1.0)
-            latest_date = result.data["date"].iloc[-1]
-            age_days = max(0.0, (result.data["date"].iloc[-1] - result.data["date"].iloc[-1]).total_seconds() / 86400.0)
-            recency = 1.0 if age_days <= 1 else 0.8
+            latest_date = pd.Timestamp(result.data["date"].iloc[-1])
+            now = pd.Timestamp.now(tz="UTC")
+            age_days = max(0.0, (now - latest_date).total_seconds() / 86400.0)
+            recency = max(0.0, 1.0 - min(age_days / 10.0, 1.0))
             score = 0.55 * agreement + 0.30 * completeness + 0.15 * recency
             scored.append((score, name, result))
 
