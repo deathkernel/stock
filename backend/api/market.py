@@ -45,7 +45,7 @@ async def research(symbol:str,horizon:int=5,outputsize:int=500):
         fused_ml=train_fused_forecast(fused,horizon).__dict__
         risk=risk_metrics(f["close"]); bt=walk_forward_backtest(f["close"],horizon); regime=detect_regime(f)
         conf=confidence_score(data_quality=q["score"],model_agreement=fc["agreement"],backtest_directional_accuracy=bt.directional_accuracy,horizon=horizon)
-        return {"symbol":symbol,"provider":result.provider,"provider_fallback_errors":errors,"data_quality":q,
+        history=[{"date":row["date"].isoformat() if hasattr(row["date"],"isoformat") else str(row["date"]),"close":float(row["close"])} for _,row in result.data.tail(250).iterrows()]\n        return {"symbol":symbol,"provider":result.provider,"provider_fallback_errors":errors,"data_quality":q,"history":history,
                 "forecast":fc,"ml_forecast":ml,"fused_ml_forecast":fused_ml,"fundamentals":fundamentals,
                 "news":news,"risk":risk,"regime":regime,"confidence":conf,
                 "scenarios":scenarios(fc["last_price"],fc["point"],risk.get("annualized_volatility",0)),
