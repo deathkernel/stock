@@ -33,14 +33,14 @@ function RiskBars({risk}){
 }
 
 function App(){
-  const [symbol,setSymbol]=useState(""); const [data,setData]=useState(null);
+  const API_BASE_URL=(import.meta.env.VITE_API_BASE_URL||"http://127.0.0.1:8000").replace(/\/$/,"");\n  const [symbol,setSymbol]=useState(""); const [data,setData]=useState(null);
   const [loading,setLoading]=useState(false); const [error,setError]=useState(""); const [advanced,setAdvanced]=useState(false);
   const [portfolioInput,setPortfolioInput]=useState("AAPL:60, MSFT:40"); const [portfolio,setPortfolio]=useState(null); const [portfolioLoading,setPortfolioLoading]=useState(false);
 
   async function analyze(){
     const s=symbol.trim().toUpperCase(); if(!s)return;
     setLoading(true);setError("");setData(null);
-    try{const r=await fetch("http://localhost:8000/api/market/"+encodeURIComponent(s)+"/research?horizon=5&outputsize=500");if(!r.ok)throw new Error((await r.json()).detail||"Analysis failed");setData(await r.json())}
+    try{const r=await fetch(API_BASE_URL+"/api/market/"+encodeURIComponent(s)+"/research?horizon=5&outputsize=500");if(!r.ok)throw new Error((await r.json()).detail||"Analysis failed");setData(await r.json())}
     catch(e){setError(e.message)}finally{setLoading(false)}
   }
 
@@ -48,7 +48,7 @@ function App(){
     const positions=portfolioInput.split(",").map(x=>x.trim()).filter(Boolean).map(x=>{const [symbol,weight]=x.split(":");return {symbol:symbol.trim(),weight:Number(weight)}});
     if(!positions.length||positions.some(x=>!x.symbol||!Number.isFinite(x.weight))){setError("Use AAPL:60, MSFT:40");return}
     setPortfolioLoading(true);setError("");
-    try{const r=await fetch("http://localhost:8000/api/portfolio/analyze-symbols",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({positions,confidence:0.95})});if(!r.ok)throw new Error((await r.json()).detail||"Portfolio analysis failed");setPortfolio(await r.json())}
+    try{const r=await fetch(API_BASE_URL+"/api/portfolio/analyze-symbols",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({positions,confidence:0.95})});if(!r.ok)throw new Error((await r.json()).detail||"Portfolio analysis failed");setPortfolio(await r.json())}
     catch(e){setError(e.message)}finally{setPortfolioLoading(false)}
   }
 
