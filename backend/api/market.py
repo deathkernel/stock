@@ -33,7 +33,7 @@ async def _research_inputs(symbol):
     return fundamentals,news_agg
 
 @router.get("/{symbol}/research")
-async def research(symbol:str,horizon:int=5,outputsize:int=500):
+async def research(symbol:str,horizon:int=5,outputsize:int=500):\n    if not symbol.strip() or len(symbol.strip()) > 20:\n        raise HTTPException(status_code=400,detail="Invalid symbol")\n    if not 1 <= horizon <= 30:\n        raise HTTPException(status_code=400,detail="horizon must be between 1 and 30")\n    if not 100 <= outputsize <= 2000:\n        raise HTTPException(status_code=400,detail="outputsize must be between 100 and 2000")
     try:
         symbol=symbol.upper()
         result,errors=await ProviderOrchestrator().history(symbol,outputsize)
