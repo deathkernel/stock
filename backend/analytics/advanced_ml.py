@@ -86,3 +86,48 @@ def time_series_search(df:pd.DataFrame,horizon:int=5)->dict:
                           "return_correlation":float(np.mean([x["return_correlation"] for x in scores]))})
     folds.sort(key=lambda x:(x["mae"],-x["directional_accuracy"]))
     return {"folds":folds,"selected_config":folds[0]["config"] if folds else None}
+
+
+def feature_importance(df:pd.DataFrame,horizon:int=5)->dict:
+    ExtraTreesRegressor, _, _, _, _ = _sklearn_components()
+    from sklearn.inspection import permutation_importance
+
+    data=df.copy()
+    data["target"]=data["close"].shift(-horizon)
+    data=data.dropna(subset=FEATURES+["target"]).reset_index(drop=True)
+    if len(data)<140:
+        raise ValueError("At least 140 observations are required for feature importance")
+
+    split=int(len(data)*0.8)
+    train,test=data.iloc[:split],data.iloc[split:]
+    model=ExtraTreesRegressor(
+        n_estimators=300,
+        max_depth=10,
+        min_samples_leaf=3,
+        max_features=.8,
+        n_jobs=-1,
+        random_state=42,
+    )
+    model.fit(train[FEATURES],train["target"])
+    result=permutation_importance(
+        model,
+        test[FEATURES],
+        test["target"],
+        n_repeats=8,
+        random_state=42,
+        scoring="neg_mean_absolute_error",
+    )
+    rows=[
+        {"feature":feature,"importance":float(max(0.0,score))}
+        for feature,score in zip(FEATURES,result.importances_mean)
+    ]
+    rows.sort(key=lambda x:x["importance"],reverse=True)
+    total=sum(x["importance"] for x in rows)
+    for row in rows:
+        row["relative_importance"]=float(row["importance"]/total) if total else 0.0
+    return {
+        "model":"extra_trees",
+        "method":"permutation_importance",
+        "observations":len(test),
+        "features":rows,
+    }
