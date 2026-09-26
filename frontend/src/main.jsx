@@ -6,7 +6,7 @@ function Metric({label,value,help}){return <div className="metric"><div classNam
 
 function App(){
   const [symbol,setSymbol]=useState(""); const [data,setData]=useState(null);
-  const [loading,setLoading]=useState(false); const [error,setError]=useState(""); const [advanced,setAdvanced]=useState(false);
+  const [loading,setLoading]=useState(false); const [error,setError]=useState(""); const [advanced,setAdvanced]=useState(false); const [portfolioInput,setPortfolioInput]=useState("AAPL:60, MSFT:40"); const [portfolio,setPortfolio]=useState(null); const [portfolioLoading,setPortfolioLoading]=useState(false);
   async function analyze(){
     const s=symbol.trim().toUpperCase(); if(!s)return;
     setLoading(true);setError("");setData(null);
@@ -16,7 +16,7 @@ function App(){
       setData(await r.json());
     }catch(e){setError(e.message)}finally{setLoading(false)}
   }
-  const f=data?.forecast,b=data?.backtest,risk=data?.risk,c=data?.confidence;
+  async function analyzePortfolio(){ const positions=portfolioInput.split(",").map(x=>x.trim()).filter(Boolean).map(x=>{const [symbol,weight]=x.split(":");return {symbol:symbol.trim(),weight:Number(weight)}}); if(!positions.length||positions.some(x=>!x.symbol||!Number.isFinite(x.weight))){setError("Use AAPL:60, MSFT:40");return} setPortfolioLoading(true);setError("");try{const r=await fetch("http://localhost:8000/api/portfolio/analyze-symbols",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({positions,confidence:0.95})});if(!r.ok)throw new Error((await r.json()).detail||"Portfolio analysis failed");setPortfolio(await r.json())}catch(e){setError(e.message)}finally{setPortfolioLoading(false)} }\n  const f=data?.forecast,b=data?.backtest,risk=data?.risk,c=data?.confidence;
   const move=f?((f.point/f.last_price-1)*100):0;
   const outlook=move>2?"Positive outlook":move<-2?"Negative outlook":"Mixed / neutral outlook";
   return <main>
@@ -24,7 +24,7 @@ function App(){
     <section className="search"><input value={symbol} onChange={e=>setSymbol(e.target.value)} onKeyDown={e=>e.key==="Enter"&&analyze()} placeholder="Enter a stock symbol, e.g. AAPL"/><button onClick={analyze} disabled={loading}>{loading?"Analyzing…":"Analyze stock"}</button></section>
     {error&&<div className="error">{error}</div>}
     {!data&&!loading&&<section className="welcome"><h2>Start with a stock symbol</h2><p>You'll get a simple overview first. Technical and model details stay below so the screen doesn't become a cockpit.</p></section>}
-    {data&&<div className="results">
+    <section className="panel portfolio-box"><div className="panel-title"><h3>Portfolio risk lab</h3><span>Research view</span></div><p className="muted">Enter positions as SYMBOL:WEIGHT. Weights are normalized automatically.</p><div className="search"><input value={portfolioInput} onChange={e=>setPortfolioInput(e.target.value)} placeholder="AAPL:60, MSFT:40"/><button onClick={analyzePortfolio} disabled={portfolioLoading}>{portfolioLoading?"Calculating…":"Analyze portfolio"}</button></div>{portfolio&&<div className="metrics compact"><Metric label="Annualized volatility" value={(portfolio.analysis.annualized_volatility*100).toFixed(1)+"%"} help="Historical portfolio volatility."/><Metric label="Historical VaR" value={(portfolio.analysis.var*100).toFixed(2)+"%"} help="Historical one-day loss threshold."/><Metric label="CVaR" value={(portfolio.analysis.cvar*100).toFixed(2)+"%"} help="Average loss beyond VaR."/><Metric label="Max drawdown" value={(portfolio.analysis.max_drawdown*100).toFixed(1)+"%"} help="Largest historical peak-to-trough decline."/><Metric label="Sharpe" value={portfolio.analysis.sharpe.toFixed(2)} help="Historical risk-adjusted return ratio."/><Metric label="Effective positions" value={portfolio.analysis.concentration.effective_number_of_positions.toFixed(1)} help="Weight concentration measure."/><Metric label="Beta" value={portfolio.analysis.beta==null?"—":portfolio.analysis.beta.toFixed(2)} help="Benchmark sensitivity when a benchmark is supplied."/><Metric label="Stress -20%" value={(portfolio.analysis.stress_tests.find(x=>x.scenario==="market_shock_-20pct")?.estimated_portfolio_return*100).toFixed(1)+"%"} help="Simple shock scenario, not a forecast."/></div>}</section>\n    {data&&<div className="results">
       <section className="hero"><div><div className="eyebrow">{data.symbol}</div><h2>{outlook}</h2><p>5-day model estimate based on available market history.</p></div><div className="hero-number">{move>=0?"+":""}{move.toFixed(2)}%</div></section>
       <section className="metrics">
         <Metric label="Estimated price" value={f.point.toFixed(2)} help="Model estimate, not a guaranteed future price."/>
