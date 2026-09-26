@@ -39,6 +39,7 @@ def _evaluate(model,train,test):
     return mae,rmse,direction,corr,pred
 
 def evaluate_candidates(df:pd.DataFrame,horizon:int=5)->list[dict]:
+    ExtraTreesRegressor, RandomForestRegressor, HistGradientBoostingRegressor, _, _ = _sklearn_components()
     data=df.copy()
     data["target"]=data["close"].shift(-horizon)
     data=data.dropna(subset=FEATURES+["target"]).reset_index(drop=True)
@@ -60,6 +61,7 @@ def evaluate_candidates(df:pd.DataFrame,horizon:int=5)->list[dict]:
     return [r.__dict__ for r in sorted(results,key=lambda r:(r["mae"],-r["directional_accuracy"],-r["return_correlation"]))]
 
 def time_series_search(df:pd.DataFrame,horizon:int=5)->dict:
+    _, _, HistGradientBoostingRegressor, _, _ = _sklearn_components()
     data=df.copy()
     data["target"]=data["close"].shift(-horizon)
     data=data.dropna(subset=FEATURES+["target"]).reset_index(drop=True)
