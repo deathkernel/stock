@@ -51,16 +51,40 @@ function App() {
     setSymbol(selected);
     setLoading(true);
     setError("");
+    setData(null);
     try {
-      const response = await fetch(
-        API_BASE_URL + "/api/market/" + encodeURIComponent(selected) + "/research?horizon=5&outputsize=500"
+      const encoded = encodeURIComponent(selected);
+      const historyResponse = await fetch(
+        API_BASE_URL + "/api/market/" + encoded + "/history?outputsize=500"
       );
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.detail || "Analysis failed");
-      setData(payload);
+      const historyPayload = await historyResponse.json();
+      if (!historyResponse.ok) {
+        throw new Error(historyPayload.detail || "Market data search failed");
+      }
+
+      const fastData = {
+        symbol: selected,
+        provider: historyPayload.provider,
+        history: historyPayload.history || [],
+      };
+      setData(fastData);
       setWatchlist((items) => Array.from(new Set([selected, ...items])));
+
+      try {
+        const researchResponse = await fetch(
+          API_BASE_URL + "/api/market/" + encoded + "/research?horizon=5&outputsize=500"
+        );
+        const researchPayload = await researchResponse.json();
+        if (researchResponse.ok) {
+          setData(researchPayload);
+        } else {
+          setError(researchPayload.detail || "Research calculation failed. Price chart is available.");
+        }
+      } catch (researchError) {
+        setError(researchError.message || "Research calculation failed. Price chart is available.");
+      }
     } catch (err) {
-      setError(err.message || "Analysis failed");
+      setError(err.message || "Market data search failed");
     } finally {
       setLoading(false);
     }
