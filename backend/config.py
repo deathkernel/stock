@@ -7,6 +7,12 @@ class Settings(BaseSettings):
     alpha_vantage_api_key: str | None = None
     twelve_data_api_key: str | None = None
     finnhub_api_key: str | None = None
+    fmp_api_key: str | None = None
+    tiingo_api_key: str | None = None
+    eodhd_api_key: str | None = None
+    massive_api_key: str | None = None
+    fred_api_key: str | None = None
+    newsapi_api_key: str | None = None
     sec_user_agent: str = "Stock Intelligence research contact@example.com"
     request_timeout_seconds: int = 20
     cache_ttl_seconds: int = 900
