@@ -65,3 +65,4 @@
 - [x] Fundamental revenue-growth mapping corrected to a growth field
 - [x] ATR corrected to use true range rather than simple high-low range
 - [x] Frontend chart and portfolio visualization integrated
+\n\n## Production hardening v2\n- [x] Request IDs and response timing\n- [x] Structured request logging\n- [x] Lightweight application metrics endpoint\n- [x] Bounded TTL research cache\n- [x] Concurrent request de-duplication\n- [ ] Shared distributed cache for multi-instance deployments\n- [ ] Full Prometheus/OpenTelemetry integration\n
