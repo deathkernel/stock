@@ -61,3 +61,13 @@ The dashboard now includes a historical price visualization, a forecast estimate
 
 ## Quality checks
 GitHub Actions runs Python 3.11 dependency installation, Python bytecode compilation, and the complete pytest suite on pushes and pull requests targeting `main`. The suite covers analytics, forecasting, ML, research feature fusion, data quality, portfolio risk, API contracts, and edge cases.
+
+
+## Production hardening
+- Configurable CORS origins via `CORS_ORIGINS`
+- Security response headers
+- `/health` and `/ready` endpoints
+- Bounded research and portfolio API inputs
+- Non-root Docker runtime
+- Docker and Compose health checks
+- Configurable SEC User-Agent
