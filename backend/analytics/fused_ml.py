@@ -1,10 +1,18 @@
 from dataclasses import dataclass
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingRegressor
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import make_pipeline
-from sklearn.metrics import mean_absolute_error,mean_squared_error
+def _sklearn_components():
+    try:
+        from sklearn.ensemble import HistGradientBoostingRegressor
+        from sklearn.impute import SimpleImputer
+        from sklearn.pipeline import make_pipeline
+        from sklearn.metrics import mean_absolute_error, mean_squared_error
+        return HistGradientBoostingRegressor, SimpleImputer, make_pipeline, mean_absolute_error, mean_squared_error
+    except Exception as exc:
+        raise RuntimeError(
+            "scikit-learn is unavailable in this Python environment. "
+            "The installed native sklearn DLL may be blocked by Windows Application Control."
+        ) from exc
 from backend.analytics.fusion_features import model_feature_columns
 
 @dataclass
@@ -18,6 +26,7 @@ class FusedForecast:
     feature_count:int
 
 def train_fused_forecast(df:pd.DataFrame,horizon:int=5)->FusedForecast:
+    HistGradientBoostingRegressor, SimpleImputer, make_pipeline, mean_absolute_error, mean_squared_error = _sklearn_components()
     cols=[c for c in model_feature_columns() if c in df.columns]
     data=df.copy()
     data["target"]=data["close"].shift(-horizon)
