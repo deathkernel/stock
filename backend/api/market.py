@@ -38,6 +38,37 @@ async def _research_inputs(symbol):
     news_agg=aggregate_news(news_items)
     return fundamentals,news_agg
 
+@router.get("/{symbol}/history")
+async def history(symbol: str, outputsize: int = 500):
+    if not symbol.strip() or len(symbol.strip()) > 20:
+        raise HTTPException(status_code=400, detail="Invalid symbol")
+    if not 100 <= outputsize <= 2000:
+        raise HTTPException(status_code=400, detail="outputsize must be between 100 and 2000")
+
+    selected = symbol.strip().upper()
+    try:
+        result, errors = await ProviderOrchestrator().history(selected, outputsize)
+        rows = [
+            {
+                "date": row["date"].isoformat() if hasattr(row["date"], "isoformat") else str(row["date"]),
+                "open": float(row["open"]),
+                "high": float(row["high"]),
+                "low": float(row["low"]),
+                "close": float(row["close"]),
+                "volume": float(row.get("volume", 0) or 0),
+            }
+            for _, row in result.data.tail(outputsize).iterrows()
+        ]
+        return {
+            "symbol": selected,
+            "provider": result.provider,
+            "provider_fallback_errors": errors,
+            "history": rows,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
 @router.get("/{symbol}/research")
 async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
     if not symbol.strip() or len(symbol.strip()) > 20:
