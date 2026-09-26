@@ -18,3 +18,24 @@ def test_quality_report_has_expected_fields():
     report=quality_report(df)
     assert 0 <= report["score"] <= 1
     assert report["rows"]==5
+
+
+def test_stooq_provider_parsing(monkeypatch):
+    from backend.providers.stooq import StooqProvider
+
+    class Response:
+        text = "Date,Open,High,Low,Close,Volume\n2026-01-02,10,11,9,10.5,1000\n"
+        def raise_for_status(self): pass
+
+    class Client:
+        async def __aenter__(self): return self
+        async def __aexit__(self,*args): pass
+        async def get(self,*args,**kwargs): return Response()
+
+    monkeypatch.setattr("httpx.AsyncClient", lambda **kwargs: Client())
+
+    import asyncio
+    result=asyncio.run(StooqProvider().history("AAPL",outputsize=10))
+    assert result.provider=="stooq"
+    assert len(result.data)==1
+    assert result.data.iloc[0]["close"]==10.5
