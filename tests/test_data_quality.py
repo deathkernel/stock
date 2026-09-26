@@ -39,3 +39,32 @@ def test_stooq_provider_parsing(monkeypatch):
     assert result.provider=="stooq"
     assert len(result.data)==1
     assert result.data.iloc[0]["close"]==10.5
+
+
+def test_yahoo_provider_parsing(monkeypatch):
+    from backend.providers.yahoo_finance import YahooFinanceProvider
+
+    class Response:
+        def raise_for_status(self): pass
+        def json(self):
+            return {"chart": {"result": [{
+                "timestamp": [1767312000],
+                "indicators": {"quote": [{
+                    "open": [100], "high": [105], "low": [99],
+                    "close": [103], "volume": [10000]
+                }]}
+            }], "error": None}}
+
+    class Client:
+        async def __aenter__(self): return self
+        async def __aexit__(self,*args): pass
+        async def get(self,*args,**kwargs): return Response()
+
+    monkeypatch.setattr("httpx.AsyncClient", lambda **kwargs: Client())
+
+    import asyncio
+    result=asyncio.run(YahooFinanceProvider().history("RELIANCE",outputsize=10))
+    assert result.provider=="yahoo_finance"
+    assert len(result.data)==1
+    assert result.metadata["yahoo_symbol"]=="RELIANCE.NS"
+    assert result.data.iloc[0]["close"]==103
