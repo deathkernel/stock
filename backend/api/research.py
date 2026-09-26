@@ -9,8 +9,7 @@ router=APIRouter(prefix="/research",tags=["research"])
 @router.get("/{symbol}/fundamentals")
 async def fundamentals(symbol:str):
     try:
-        client=FundamentalsClient()
-        results=[]
+        client=FundamentalsClient(); results=[]
         for fn in (client.alpha_overview,client.finnhub_metrics):
             try: results.append(await fn(symbol.upper()))
             except Exception as exc: results.append({"error":str(exc)})
@@ -24,8 +23,9 @@ async def fundamentals(symbol:str):
 async def news(symbol:str,days:int=7):
     try:
         client=NewsClient(); items=[]
-        for fn in (lambda s:client.finnhub_company_news(s,days),lambda s:client.alpha_news(s,50)):
-            try: items.extend(await fn(symbol.upper()))
-            except Exception: pass
+        try: items.extend(await client.finnhub_company_news(symbol.upper(),days))
+        except Exception: pass
+        try: items.extend(await client.alpha_news(symbol.upper(),50))
+        except Exception: pass
         return {"symbol":symbol.upper(),"items":items,"aggregate":aggregate_news(items)}
     except Exception as exc: raise HTTPException(status_code=502,detail=str(exc))
