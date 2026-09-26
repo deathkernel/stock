@@ -149,9 +149,11 @@ function App() {
                   {move >= 0 ? "+" : ""}{move.toFixed(2)}% model horizon
                 </span>
               </div>
-              {decision && <div className={decision.signal.includes("BUY") ? "signal-badge buy" : decision.signal.includes("SELL") ? "signal-badge sell" : "signal-badge hold"}>
-                {decision.signal} <strong>{decision.score.toFixed(1)}/100</strong>
-              </div>
+              {decision ? (
+                <div className={decision.signal.includes("BUY") ? "signal-badge buy" : decision.signal.includes("SELL") ? "signal-badge sell" : "signal-badge hold"}>
+                  {decision.signal} <strong>{decision.score.toFixed(1)}/100</strong>
+                </div>
+              ) : null}
             </div>
             <div className="chart-head-actions">
               <button>☰</button><button>⌄</button><button>⛶</button>
