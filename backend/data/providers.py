@@ -91,6 +91,10 @@ class ProviderOrchestrator:
                     float(max(abs(price - consensus_price) for price in last_prices) / max(abs(consensus_price), 1e-9)),
                     6,
                 ),
+                "provider_agreement": round(
+                    max(0.0, 1.0 - min((max(abs(price - consensus_price) for price in last_prices) / max(abs(consensus_price), 1e-9)) / 0.03, 1.0)),
+                    4,
+                ),
                 "provider_scores": provider_scores,
             },
         }
