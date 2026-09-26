@@ -56,3 +56,12 @@
 - Compact evidence and risk panels
 - Portfolio risk-contribution visualization
 - Dashboard history endpoint returns chart-ready normalized close data
+
+
+## Final engineering audit
+- [x] Expanded analytics, API, research-pipeline, data-quality, risk-edge, and portfolio test coverage
+- [x] GitHub Actions CI with dependency installation, compile check, and pytest
+- [x] SEC client uses configured user-agent settings
+- [x] Fundamental revenue-growth mapping corrected to a growth field
+- [x] ATR corrected to use true range rather than simple high-low range
+- [x] Frontend chart and portfolio visualization integrated
