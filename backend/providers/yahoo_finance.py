@@ -24,27 +24,35 @@ class YahooFinanceProvider(MarketDataProvider):
         if not raw.endswith((".NS", ".BO")) and raw.isascii() and all(ch.isalnum() or ch in "-._" for ch in raw):
             candidates.extend([f"{raw}.NS", f"{raw}.BO"])
 
-        last_error = None
+        errors = []
         async with httpx.AsyncClient(
             timeout=settings.request_timeout_seconds,
             headers={"User-Agent": "Mozilla/5.0 Stock-Intelligence/1.0"},
         ) as client:
             for yahoo_symbol in candidates:
-                response = await client.get(
-                    f"{self.base_url}/{yahoo_symbol}",
-                    params={
-                        "period1": 0,
-                        "period2": int(time.time()),
-                        "interval": "1d",
-                        "events": "history",
-                        "includeAdjustedClose": "true",
-                    },
-                )
-                response.raise_for_status()
-                payload = response.json()
+                try:
+                    response = await client.get(
+                        f"{self.base_url}/{yahoo_symbol}",
+                        params={
+                            "period1": 0,
+                            "period2": int(time.time()),
+                            "interval": "1d",
+                            "events": "history",
+                            "includeAdjustedClose": "true",
+                        },
+                    )
+                    if response.status_code >= 400:
+                        errors.append(f"{yahoo_symbol}: HTTP {response.status_code}")
+                        continue
+                    payload = response.json()
+                except (httpx.HTTPError, ValueError) as exc:
+                    errors.append(f"{yahoo_symbol}: {exc}")
+                    continue
+
                 result = payload.get("chart", {}).get("result")
                 if not result:
-                    last_error = (payload.get("chart", {}).get("error") or {}).get("description")
+                    description = (payload.get("chart", {}).get("error") or {}).get("description")
+                    errors.append(f"{yahoo_symbol}: {description or 'no data'}")
                     continue
 
                 chart = result[0]
@@ -63,7 +71,7 @@ class YahooFinanceProvider(MarketDataProvider):
 
                 df = pd.DataFrame(rows)
                 if df.empty:
-                    last_error = f"No Yahoo Finance data found for {yahoo_symbol}"
+                    errors.append(f"{yahoo_symbol}: empty dataset")
                     continue
 
                 for column in ("open", "high", "low", "close", "volume"):
@@ -82,4 +90,7 @@ class YahooFinanceProvider(MarketDataProvider):
                         },
                     )
 
-        raise RuntimeError(last_error or f"No Yahoo Finance data found for {raw}")
+        raise RuntimeError(
+            f"No Yahoo Finance data found for {raw}. "
+            + " | ".join(errors[-3:])
+        )
