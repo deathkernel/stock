@@ -22,7 +22,16 @@ def add_technical_features(df: pd.DataFrame) -> pd.DataFrame:
     std = close.rolling(20).std()
     out["bb_upper"] = mid + 2 * std
     out["bb_lower"] = mid - 2 * std
-    prev_close = close.shift(1)\n    true_range = pd.concat([out["high"] - out["low"], (out["high"] - prev_close).abs(), (out["low"] - prev_close).abs()], axis=1).max(axis=1)\n    out["atr_14"] = true_range.rolling(14).mean()
+    prev_close = close.shift(1)
+    true_range = pd.concat(
+        [
+            out["high"] - out["low"],
+            (out["high"] - prev_close).abs(),
+            (out["low"] - prev_close).abs(),
+        ],
+        axis=1,
+    ).max(axis=1)
+    out["atr_14"] = true_range.rolling(14).mean()
     out["return_1d"] = close.pct_change()
     out["return_5d"] = close.pct_change(5)
     out["return_20d"] = close.pct_change(20)
