@@ -1,8 +1,16 @@
 from dataclasses import dataclass
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor, HistGradientBoostingRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+def _sklearn_components():
+    try:
+        from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor, HistGradientBoostingRegressor
+        from sklearn.metrics import mean_absolute_error, mean_squared_error
+        return ExtraTreesRegressor, RandomForestRegressor, HistGradientBoostingRegressor, mean_absolute_error, mean_squared_error
+    except Exception as exc:
+        raise RuntimeError(
+            "scikit-learn is unavailable in this Python environment. "
+            "The installed native sklearn DLL may be blocked by Windows Application Control."
+        ) from exc
 
 FEATURES=[
     "return_1d","return_5d","return_20d","rsi_14","macd","macd_signal",
@@ -19,6 +27,7 @@ class CandidateResult:
     prediction:float
 
 def _evaluate(model,train,test):
+    _, _, _, mean_absolute_error, mean_squared_error = _sklearn_components()
     model.fit(train[FEATURES],train["target"])
     pred=model.predict(test[FEATURES])
     actual=test["target"].to_numpy(); base=test["close"].to_numpy()
