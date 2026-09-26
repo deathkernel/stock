@@ -128,6 +128,9 @@ export default function TradingChart({ history = [], forecast = null }) {
   const [showSma, setShowSma] = React.useState(true);
   const [showEma, setShowEma] = React.useState(false);
   const [showVolume, setShowVolume] = React.useState(true);
+  const [showBbands, setShowBbands] = React.useState(false);
+  const [showRsi, setShowRsi] = React.useState(false);
+  const [showMacd, setShowMacd] = React.useState(false);
 
   const candles = useMemo(
     () =>
