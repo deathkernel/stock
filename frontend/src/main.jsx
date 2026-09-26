@@ -35,6 +35,33 @@ function ToolbarButton({ children, active, onClick, title }) {
   );
 }
 
+class AppErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <main style={{ padding: 32, color: "#e8edf5", background: "#0b0f14", minHeight: "100vh", fontFamily: "system-ui" }}>
+          <h1>Stock Intelligence</h1>
+          <h2>Frontend runtime error</h2>
+          <pre style={{ whiteSpace: "pre-wrap", color: "#ef8b93", background: "#171014", padding: 16, borderRadius: 8 }}>
+            {this.state.error.message || String(this.state.error)}
+          </pre>
+          <p>Restart the app with <code>python run.py</code> after pulling the latest code.</p>
+        </main>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
   const [symbol, setSymbol] = useState("AAPL");
@@ -412,4 +439,4 @@ function PortfolioPanel({ API_BASE_URL }) {
   );
 }
 
-createRoot(document.getElementById("root")).render(<App />);
+createRoot(document.getElementById("root")).render(<AppErrorBoundary><App /></AppErrorBoundary>);
