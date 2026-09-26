@@ -57,8 +57,17 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
             fused = attach_research_features(f, fundamentals, news)
             fc = ensemble_forecast(f["close"], horizon).__dict__
             fc["last_price"] = float(f["close"].iloc[-1])
-            ml = train_gradient_forecast(f, horizon).__dict__
-            fused_ml = train_fused_forecast(fused, horizon).__dict__
+            ml = None
+            fused_ml = None
+            ml_error = None
+            try:
+                ml = train_gradient_forecast(f, horizon).__dict__
+                fused_ml = train_fused_forecast(fused, horizon).__dict__
+            except RuntimeError as exc:
+                if "scikit-learn is unavailable" in str(exc):
+                    ml_error = str(exc)
+                else:
+                    raise
             risk = risk_metrics(f["close"])
             bt = walk_forward_backtest(f["close"], horizon)
             regime = detect_regime(f)
@@ -84,6 +93,8 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
                 "forecast": fc,
                 "ml_forecast": ml,
                 "fused_ml_forecast": fused_ml,
+                "ml_status": "unavailable" if ml_error else "available",
+                "ml_error": ml_error,
                 "fundamentals": fundamentals,
                 "news": news,
                 "risk": risk,
