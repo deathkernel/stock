@@ -18,6 +18,9 @@ from backend.providers.fundamentals import FundamentalsClient
 from backend.news.providers import NewsClient
 from backend.news.signal import aggregate_news
 from backend.analytics.fundamental_features import extract_fundamental_features
+from backend.news.newsapi import NewsAPIClient
+from backend.news.sentiment import score_headline
+from backend.providers.fred import FREDClient
 from backend.cache import research_cache
 from backend.config import settings
 
@@ -36,8 +39,15 @@ async def _research_inputs(symbol):
     except Exception: pass
     try: news_items.extend(await news.alpha_news(symbol,50))
     except Exception: pass
-    news_agg=aggregate_news(news_items)
-    return fundamentals,news_agg
+    try:
+        newsapi_items = await NewsAPIClient().company_news(symbol, page_size=30)
+        for item in newsapi_items:
+            item["sentiment_score"] = score_headline(item.get("headline", ""))["score"]
+        news_items.extend(newsapi_items)
+    except Exception:
+        pass
+    news_agg = aggregate_news(news_items)
+    return fundamentals, news_agg
 
 @router.get("/{symbol}/history")
 async def history(symbol: str, outputsize: int = 500):
@@ -88,6 +98,7 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
             f = build_features(result.data)
             q = quality_report(result.data)
             fundamentals, news = await _research_inputs(symbol)
+            macro = await FREDClient().market_context()
             fused = attach_research_features(f, fundamentals, news)
             fc = ensemble_forecast(f["close"], horizon).__dict__
             fc["last_price"] = float(f["close"].iloc[-1])
@@ -109,6 +120,8 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
             risk = risk_metrics(f["close"])
             bt = walk_forward_backtest(f["close"], horizon)
             regime = detect_regime(f)
+            source_consensus = result.metadata.get("cross_source_consensus", {})
+            source_agreement = float(source_consensus.get("provider_agreement", 1.0))
             ml_prices = []
             if ml and ml.get("point") is not None:
                 ml_prices.append(float(ml["point"]))
@@ -123,6 +136,7 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
                 news_sentiment=float(news.get("mean_sentiment", 0.0)),
                 ml_prices=ml_prices,
                 volatility=float(risk.get("annualized_volatility", 0.0)),
+                source_agreement=source_agreement,
             )
             conf = confidence_score(
                 data_quality=q["score"],
@@ -152,6 +166,7 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
                 "symbol": symbol,
                 "provider": result.provider,
                 "provider_fallback_errors": errors,
+                "source_consensus": source_consensus,
                 "data_quality": q,
                 "history": history,
                 "forecast": fc,
@@ -163,6 +178,7 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
                 "ml_error": ml_error,
                 "fundamentals": fundamentals,
                 "news": news,
+                "macro": macro,
                 "risk": risk,
                 "regime": regime,
                 "confidence": conf,
