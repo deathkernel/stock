@@ -8,6 +8,7 @@ from backend.analytics.risk import risk_metrics
 from backend.analytics.regime import detect_regime
 from backend.analytics.confidence import confidence_score
 from backend.analytics.scenarios import scenarios
+from backend.analytics.decision import decision_snapshot
 from backend.analytics.ml import train_gradient_forecast
 from backend.analytics.advanced_ml import evaluate_candidates, feature_importance
 from backend.analytics.fusion_features import attach_research_features
@@ -76,6 +77,21 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
             risk = risk_metrics(f["close"])
             bt = walk_forward_backtest(f["close"], horizon)
             regime = detect_regime(f)
+            ml_prices = []
+            if ml and ml.get("point") is not None:
+                ml_prices.append(float(ml["point"]))
+            if fused_ml and fused_ml.get("point") is not None:
+                ml_prices.append(float(fused_ml["point"]))
+            decision = decision_snapshot(
+                last_price=float(fc["last_price"]),
+                forecast_price=float(fc["point"]),
+                trend_score=float(regime["trend_score"]),
+                directional_accuracy=float(bt.directional_accuracy),
+                data_quality=float(q["score"]),
+                news_sentiment=float(news.get("mean_sentiment", 0.0)),
+                ml_prices=ml_prices,
+                volatility=float(risk.get("annualized_volatility", 0.0)),
+            )
             conf = confidence_score(
                 data_quality=q["score"],
                 model_agreement=fc["agreement"],
@@ -107,6 +123,7 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
                 "risk": risk,
                 "regime": regime,
                 "confidence": conf,
+                "decision": decision,
                 "scenarios": scenarios(fc["last_price"], fc["point"], risk.get("annualized_volatility", 0)),
                 "backtest": bt.__dict__,
             }
