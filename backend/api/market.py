@@ -9,6 +9,7 @@ from backend.analytics.regime import detect_regime
 from backend.analytics.confidence import confidence_score
 from backend.analytics.scenarios import scenarios
 from backend.analytics.decision import decision_snapshot
+from backend.analytics.trade_levels import research_levels
 from backend.analytics.ml import train_gradient_forecast
 from backend.analytics.advanced_ml import evaluate_candidates, feature_importance
 from backend.analytics.fusion_features import attach_research_features
@@ -129,6 +130,13 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
                 backtest_directional_accuracy=bt.directional_accuracy,
                 horizon=horizon,
             )
+            latest_row = f.iloc[-1]
+            levels = research_levels(
+                last_price=float(fc["last_price"]),
+                forecast_price=float(fc["point"]),
+                atr_14=float(latest_row.get("atr_14", 0) or 0),
+                signal=decision["signal"],
+            )
             history = [
                 {
                     "date": row["date"].isoformat() if hasattr(row["date"], "isoformat") else str(row["date"]),
@@ -159,6 +167,7 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
                 "regime": regime,
                 "confidence": conf,
                 "decision": decision,
+                "research_levels": levels,
                 "scenarios": scenarios(fc["last_price"], fc["point"], risk.get("annualized_volatility", 0)),
                 "backtest": bt.__dict__,
             }
