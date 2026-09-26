@@ -44,7 +44,7 @@ function PriceChart({history,forecast}){
 function RiskBars({risk}){
   if(!risk)return null;
   const items=Object.entries(risk.risk_contribution||{});
-  return <div className="risk-bars">{items.map(([symbol,value])=><div className="risk-row" key={symbol}><div><strong>{symbol}</strong><span>{(value*100).toFixed(1)}%</span></div><div className="bar"><i style={{width:Math.min(100,value*100)+"%"}}/></div>)}</div>
+  return <div className="risk-bars">{items.map(([symbol,value])=><div className="risk-row" key={symbol}><div><strong>{symbol}</strong><span>{(value*100).toFixed(1)}%</span></div><div className="bar"><i style={{width:Math.min(100,value*100)+"%"}}/></div></div>)}</div>
 }
 
 function App(){
