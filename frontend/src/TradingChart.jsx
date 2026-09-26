@@ -168,6 +168,17 @@ export default function TradingChart({ history = [], forecast = null }) {
       smaSeries.setData(movingAverage(visible, 20, "close"));
     }
 
+
+    if (showBbands && visible.length >= 20) {
+      const bands = bollingerBands(visible, 20, 2);
+      const upper = chart.addSeries(LineSeries, { color: "#9b87f5", lineWidth: 1, priceLineVisible: false, lastValueVisible: false, title: "BB Upper" });
+      const middle = chart.addSeries(LineSeries, { color: "#777f8d", lineWidth: 1, priceLineVisible: false, lastValueVisible: false, title: "BB Mid" });
+      const lower = chart.addSeries(LineSeries, { color: "#9b87f5", lineWidth: 1, priceLineVisible: false, lastValueVisible: false, title: "BB Lower" });
+      upper.setData(bands.map((row) => ({ time: row.time, value: row.upper })));
+      middle.setData(bands.map((row) => ({ time: row.time, value: row.middle })));
+      lower.setData(bands.map((row) => ({ time: row.time, value: row.lower })));
+    }
+
     if (showEma) {
       const emaSeries = chart.addSeries(LineSeries, {
         color: "#5aa9ff",
@@ -176,6 +187,30 @@ export default function TradingChart({ history = [], forecast = null }) {
         lastValueVisible: false,
       });
       emaSeries.setData(exponentialMovingAverage(visible, 50, "close"));
+    }
+
+
+    if (showRsi && visible.length >= 15) {
+      const rsi = chart.addSeries(LineSeries, {
+        color: "#c084fc",
+        lineWidth: 2,
+        priceLineVisible: false,
+        lastValueVisible: true,
+        title: "RSI 14",
+      }, 1);
+      rsi.setData(relativeStrengthIndex(visible, 14));
+      rsi.createPriceLine({ price: 70, color: "#ef535077", lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: "70" });
+      rsi.createPriceLine({ price: 30, color: "#26a69a77", lineWidth: 1, lineStyle: LineStyle.Dashed, axisLabelVisible: true, title: "30" });
+    }
+
+    if (showMacd && visible.length >= 35) {
+      const values = macd(visible);
+      const histogram = chart.addSeries(HistogramSeries, { priceFormat: { type: "price", precision: 3, minMove: 0.001 }, base: 0 }, 2);
+      const line = chart.addSeries(LineSeries, { color: "#4da3ff", lineWidth: 2, priceLineVisible: false, lastValueVisible: true, title: "MACD" }, 2);
+      const signal = chart.addSeries(LineSeries, { color: "#f6c453", lineWidth: 2, priceLineVisible: false, lastValueVisible: true, title: "Signal" }, 2);
+      histogram.setData(values.histogram);
+      line.setData(values.line);
+      signal.setData(values.signal);
     }
 
     if (forecast && Number.isFinite(Number(forecast.point))) {
@@ -235,7 +270,7 @@ export default function TradingChart({ history = [], forecast = null }) {
       resizeObserver.disconnect();
       chart.remove();
     };
-  }, [visible, showSma, showEma, showVolume, forecast]);
+  }, [visible, showSma, showEma, showVolume, showBbands, showRsi, showMacd, forecast]);
 
   if (visible.length < 2) {
     return <div className="chart-empty">Not enough historical data for an interactive chart.</div>;
@@ -258,6 +293,9 @@ export default function TradingChart({ history = [], forecast = null }) {
         <div className="toolbar-group indicators">
           <button className={showSma ? "active" : ""} onClick={() => setShowSma(!showSma)}>SMA 20</button>
           <button className={showEma ? "active" : ""} onClick={() => setShowEma(!showEma)}>EMA 50</button>
+          <button className={showBbands ? "active" : ""} onClick={() => setShowBbands(!showBbands)}>BB</button>
+          <button className={showRsi ? "active" : ""} onClick={() => setShowRsi(!showRsi)}>RSI 14</button>
+          <button className={showMacd ? "active" : ""} onClick={() => setShowMacd(!showMacd)}>MACD</button>
           <button className={showVolume ? "active" : ""} onClick={() => setShowVolume(!showVolume)}>Volume</button>
         </div>
       </div>
