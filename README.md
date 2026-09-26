@@ -57,3 +57,7 @@ Portfolio outputs are historical/statistical risk measures and scenario estimate
 
 ## Interactive research dashboard
 The dashboard now includes a historical price visualization, a forecast estimate marker with uncertainty range, validation evidence cards, risk/scenario cards, and a portfolio risk-contribution view. Historical chart data is limited to a recent window for responsive rendering.
+
+
+## Quality checks
+GitHub Actions runs Python 3.11 dependency installation, Python bytecode compilation, and the complete pytest suite on pushes and pull requests targeting `main`. The suite covers analytics, forecasting, ML, research feature fusion, data quality, portfolio risk, API contracts, and edge cases.
