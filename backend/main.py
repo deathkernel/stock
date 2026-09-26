@@ -10,7 +10,7 @@ from backend.api.portfolio import router as portfolio_router
 from backend.cache import research_cache
 from backend.config import settings
 from backend.observability import metrics, observe_request
-from backend.storage import init_db
+from backend.storage import check_db, init_db
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -48,6 +48,10 @@ def health():
 
 @app.get("/ready")
 def ready():
+    try:
+        check_db()
+    except Exception:
+        return {"status": "not_ready", "service": "stock-intelligence", "version": "0.7.0"}
     return {"status": "ready", "service": "stock-intelligence", "version": "0.7.0"}
 
 
