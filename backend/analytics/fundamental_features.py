@@ -1,12 +1,12 @@
 import math
 
 FIELDS={
-    "RevenueTTM":"revenue_growth",
+    "QuarterlyRevenueGrowthYOY":"revenue_growth",
     "EPSGrowthTTMYoy":"eps_growth",
     "ProfitMargin":"profit_margin",
     "ReturnOnEquityTTM":"roe",
     "OperatingMarginTTM":"operating_margin",
-    "QuarterlyRevenueGrowthYOY":"quarterly_revenue_growth",
+    
 }
 
 def _num(v):
