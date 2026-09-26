@@ -74,6 +74,7 @@ async def history(symbol: str, outputsize: int = 500):
             "symbol": selected,
             "provider": result.provider,
             "provider_fallback_errors": errors,
+            "source_consensus": result.metadata.get("cross_source_consensus", {}),
             "history": rows,
         }
     except Exception as exc:
