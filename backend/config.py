@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     sec_user_agent: str = "Stock Intelligence research contact@example.com"
     request_timeout_seconds: int = 20
     cache_ttl_seconds: int = 900
+    cache_max_entries: int = 256
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     @property
