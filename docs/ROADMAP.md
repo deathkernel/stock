@@ -42,10 +42,17 @@
 ## Product
 - [x] FastAPI skeleton
 - [x] React/Vite skeleton
-- [ ] Interactive charts
+- [x] Interactive charts
 - [x] Stock search
 - [x] Analysis report
 - [ ] News timeline
-- [ ] Backtest dashboard
+- [x] Backtest dashboard
 - [ ] AI analyst
 - [ ] Authentication
+
+
+## Visual analytics milestone
+- Historical close chart with forecast estimate and uncertainty band
+- Compact evidence and risk panels
+- Portfolio risk-contribution visualization
+- Dashboard history endpoint returns chart-ready normalized close data
