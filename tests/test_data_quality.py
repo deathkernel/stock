@@ -68,3 +68,41 @@ def test_yahoo_provider_parsing(monkeypatch):
     assert len(result.data)==1
     assert result.metadata["yahoo_symbol"]=="RELIANCE.NS"
     assert result.data.iloc[0]["close"]==103
+
+def test_yahoo_provider_tries_nse_after_first_symbol_error(monkeypatch):
+    import asyncio
+    from backend.providers.yahoo_finance import YahooFinanceProvider
+
+    class Response:
+        def __init__(self, status_code, payload):
+            self.status_code = status_code
+            self._payload = payload
+
+        def json(self):
+            return self._payload
+
+    calls = []
+
+    class Client:
+        async def __aenter__(self): return self
+        async def __aexit__(self, *args): pass
+        async def get(self, url, **kwargs):
+            calls.append(url)
+            if url.endswith("/RELIANCE"):
+                return Response(404, {})
+            return Response(200, {
+                "chart": {
+                    "result": [{
+                        "timestamp": [1767312000],
+                        "indicators": {"quote": [{
+                            "open": [100], "high": [105], "low": [99],
+                            "close": [103], "volume": [10000]
+                        }]}
+                    ]
+                }
+            })
+
+    monkeypatch.setattr("httpx.AsyncClient", lambda **kwargs: Client())
+    result = asyncio.run(YahooFinanceProvider().history("RELIANCE", outputsize=10))
+    assert result.metadata["yahoo_symbol"] == "RELIANCE.NS"
+    assert len(calls) >= 2
