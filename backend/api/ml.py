@@ -1,6 +1,6 @@
 from fastapi import APIRouter,HTTPException
 from backend.analytics.ml import train_gradient_forecast
-from backend.analytics.advanced_ml import evaluate_candidates,time_series_search
+from backend.analytics.advanced_ml import evaluate_candidates,time_series_search,feature_importance
 from backend.news.sentiment import score_headline
 
 router=APIRouter(prefix="/ml",tags=["ml"])
@@ -34,3 +34,11 @@ def search(payload:dict):
 @router.post("/sentiment")
 def sentiment(payload:dict):
     return score_headline(payload.get("headline",""))
+
+@router.post("/importance")
+def importance(payload:dict):
+    try:
+        import pandas as pd
+        return feature_importance(pd.DataFrame(payload["history"]),int(payload.get("horizon",5)))
+    except Exception as exc:
+        raise HTTPException(status_code=400,detail=str(exc))
