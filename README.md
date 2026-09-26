@@ -71,3 +71,27 @@ Run the entire application from the repository root with one command:\n\n`python
 - Non-root Docker runtime
 - Docker and Compose health checks
 - Configurable SEC User-Agent
+
+
+## Multi-source accuracy layer
+
+The research engine can use multiple independent sources instead of trusting a single feed. The current stack supports:
+
+| Source | Role | Credential |
+| --- | --- | --- |
+| Yahoo Finance | no-key daily market fallback | none |
+| Stooq | no-key daily market fallback | none |
+| Alpha Vantage | market, fundamentals, news/sentiment | `ALPHA_VANTAGE_API_KEY` |
+| Twelve Data | market time series | `TWELVE_DATA_API_KEY` |
+| Finnhub | market, financial data, news | `FINNHUB_API_KEY` |
+| Financial Modeling Prep | historical prices, fundamentals and news | `FMP_API_KEY` |
+| Tiingo | EOD prices, fundamentals and news | `TIINGO_API_KEY` |
+| EODHD | global EOD market data | `EODHD_API_KEY` |
+| Massive | U.S. aggregates and market data | `MASSIVE_API_KEY` |
+| SEC EDGAR | official U.S. filings/XBRL | `SEC_USER_AGENT` only |
+| FRED | macroeconomic series | `FRED_API_KEY` |
+| NewsAPI | independent broad news search | `NEWSAPI_API_KEY` |
+
+Successful market feeds are queried concurrently, normalized to the same OHLCV schema, and compared using last-price agreement, freshness, and data completeness. The selected feed remains one internally consistent historical series; the other feeds act as cross-source validation rather than being blindly mixed bar-by-bar.
+
+API credentials stay local in `.env` and should never be committed. FRED requires an API key and NewsAPI requires an API key for article search. citeturn516359search4turn313084search5
