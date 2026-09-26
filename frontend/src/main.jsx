@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 import TradingChart from "./TradingChart.jsx";
@@ -44,6 +44,28 @@ function App() {
   const [rightTab, setRightTab] = useState("Watchlist");
   const [bottomTab, setBottomTab] = useState("Overview");
   const [watchlist, setWatchlist] = useState(["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "RELIANCE", "TCS", "INFY"]);
+  const [connection, setConnection] = useState("checking");
+
+  async function requestJson(url, options = {}) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      let payload = {};
+      try { payload = await response.json(); } catch {}
+      return { response, payload };
+    } catch (error) {
+      if (error.name === "AbortError") {
+        throw new Error("Request timed out after 15 seconds. Check that the backend is running on port 8000.");
+      }
+      if (error instanceof TypeError) {
+        throw new Error("Cannot reach backend at " + API_BASE_URL + ". Start the app with: python run.py");
+      }
+      throw error;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
 
   async function analyzeSymbol(nextSymbol) {
     const selected = (nextSymbol || symbol).trim().toUpperCase();
@@ -55,17 +77,16 @@ function App() {
     try {
       const encoded = encodeURIComponent(selected);
       let historyPayload;
-      const historyResponse = await fetch(
+      const { response: historyResponse, payload: historyResult } = await requestJson(
         API_BASE_URL + "/api/market/" + encoded + "/history?outputsize=500"
       );
 
       if (historyResponse.ok) {
-        historyPayload = await historyResponse.json();
+        historyPayload = historyResult;
       } else {
-        const fallbackResponse = await fetch(
+        const { response: fallbackResponse, payload: fallbackPayload } = await requestJson(
           API_BASE_URL + "/api/market/" + encoded + "/research?horizon=5&outputsize=500"
         );
-        const fallbackPayload = await fallbackResponse.json();
         if (!fallbackResponse.ok) {
           throw new Error(
             fallbackPayload.detail || "Market data search failed. Restart the backend and verify the data provider."
@@ -85,10 +106,9 @@ function App() {
       setWatchlist((items) => Array.from(new Set([selected, ...items])));
 
       try {
-        const researchResponse = await fetch(
+        const { response: researchResponse, payload: researchPayload } = await requestJson(
           API_BASE_URL + "/api/market/" + encoded + "/research?horizon=5&outputsize=500"
         );
-        const researchPayload = await researchResponse.json();
         if (researchResponse.ok) {
           setData(researchPayload);
         } else {
@@ -103,6 +123,16 @@ function App() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    let mounted = true;
+    requestJson(API_BASE_URL + "/health", {}).then(({ response }) => {
+      if (mounted) setConnection(response.ok ? "connected" : "error");
+    }).catch(() => {
+      if (mounted) setConnection("offline");
+    });
+    return () => { mounted = false; };
+  }, [API_BASE_URL]);
 
   const forecast = data?.forecast;
   const backtest = data?.backtest;
@@ -131,7 +161,7 @@ function App() {
           <button>Community</button>
         </nav>
         <div className="tv-header-actions">
-          <span className="live-pill"><i /> Data</span>
+          <span className="live-pill"><i className={connection === "connected" ? "live-dot" : connection === "checking" ? "checking-dot" : "offline-dot"} /> {connection === "connected" ? "Backend connected" : connection === "checking" ? "Connecting..." : "Backend offline"}</span>
           <button className="icon-button">⌁</button>
           <button className="icon-button">⚙</button>
         </div>
@@ -165,6 +195,7 @@ function App() {
         <button className="publish-button">Publish</button>
       </section>
 
+      {loading && <div className="terminal-progress">{data ? "Updating quantitative research…" : "Searching market data…"}</div>}
       {error && <div className="terminal-error">{error}</div>}
 
       <div className="tv-workspace">
