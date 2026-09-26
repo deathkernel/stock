@@ -1,8 +1,16 @@
 from dataclasses import dataclass
 import numpy as np
 import pandas as pd
-from sklearn.ensemble import HistGradientBoostingRegressor,RandomForestRegressor
-from sklearn.metrics import mean_absolute_error,mean_squared_error
+def _sklearn_components():
+    try:
+        from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
+        from sklearn.metrics import mean_absolute_error, mean_squared_error
+        return HistGradientBoostingRegressor, RandomForestRegressor, mean_absolute_error, mean_squared_error
+    except Exception as exc:
+        raise RuntimeError(
+            "scikit-learn is unavailable in this Python environment. "
+            "The installed native sklearn DLL may be blocked by Windows Application Control."
+        ) from exc
 
 FEATURES=["return_1d","return_5d","return_20d","rsi_14","macd","macd_signal","volatility_20d","volume_ratio_20d","trend_score"]
 
@@ -16,6 +24,7 @@ class MLForecast:
     model:str
 
 def _evaluate(model,train,test):
+    _, _, mean_absolute_error, mean_squared_error = _sklearn_components()
     model.fit(train[FEATURES],train["target"]); pred=model.predict(test[FEATURES])
     mae=float(mean_absolute_error(test["target"],pred)); rmse=float(np.sqrt(mean_squared_error(test["target"],pred)))
     base=test["close"].to_numpy(); actual=test["target"].to_numpy()
@@ -25,6 +34,7 @@ def _evaluate(model,train,test):
     return mae,rmse,direction,corr
 
 def train_gradient_forecast(df:pd.DataFrame,horizon:int=5)->MLForecast:
+    HistGradientBoostingRegressor, RandomForestRegressor, _, _ = _sklearn_components()
     data=df.copy(); data["target"]=data["close"].shift(-horizon)
     data=data.dropna(subset=FEATURES+["target"])
     if len(data)<120: raise ValueError("At least 120 feature rows are required for ML forecasting")
