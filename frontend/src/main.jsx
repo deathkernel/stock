@@ -70,10 +70,11 @@ function App() {
   const backtest = data?.backtest;
   const risk = data?.risk;
   const confidence = data?.confidence;
+  const decision = data?.decision;
   const history = data?.history || [];
   const lastPrice = Number(forecast?.last_price || history.at(-1)?.close || 0);
   const move = forecast && lastPrice ? ((Number(forecast.point) / lastPrice) - 1) * 100 : 0;
-  const outlook = move > 2 ? "Positive" : move < -2 ? "Negative" : "Neutral";
+  const outlook = decision?.signal || (move > 2 ? "Positive" : move < -2 ? "Negative" : "Neutral");
 
   return (
     <main className="terminal-shell">
@@ -144,9 +145,12 @@ function App() {
               </div>
               <div className="instrument-subtitle">
                 {lastPrice ? lastPrice.toFixed(2) : "—"}
-                <span className={move >= 0 ? "change positive" : "change negative"}>
+                <span className={decision?.score >= 60 ? "change positive" : decision?.score <= 40 ? "change negative" : "change"}>
                   {move >= 0 ? "+" : ""}{move.toFixed(2)}% model horizon
                 </span>
+              </div>
+              {decision && <div className={decision.signal.includes("BUY") ? "signal-badge buy" : decision.signal.includes("SELL") ? "signal-badge sell" : "signal-badge hold"}>
+                {decision.signal} <strong>{decision.score.toFixed(1)}/100</strong>
               </div>
             </div>
             <div className="chart-head-actions">
@@ -235,7 +239,9 @@ function App() {
 
         {bottomTab === "Overview" && (
           <div className="research-grid">
-            <Metric label="Outlook" value={outlook} help="Direction of the model's five-day point estimate." />
+            <Metric label="Signal score" value={decision ? decision.score.toFixed(1) + "/100" : "—"} help="Composite quantitative research score; not a guaranteed outcome." />
+            <Metric label="Conviction" value={decision ? (decision.conviction * 100).toFixed(0) + "%" : "—"} help="Signal strength after volatility attenuation." />
+            <Metric label="Outlook" value={outlook} help="Composite research classification." />
             <Metric label="Estimated price" value={forecast ? Number(forecast.point).toFixed(2) : "—"} help="Model estimate, not a guarantee." />
             <Metric label="Confidence" value={confidence?.label || "—"} help="Combines data quality, model agreement and validation." />
             <Metric label="Directional accuracy" value={backtest ? (backtest.directional_accuracy * 100).toFixed(1) + "%" : "—"} help="Historical walk-forward direction accuracy." />
