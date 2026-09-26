@@ -61,9 +61,11 @@ def main() -> None:
     env = os.environ.copy()
     env.setdefault("VITE_API_BASE_URL", "http://127.0.0.1:8000")
 
-    dependencies_missing = not (FRONTEND / "node_modules").exists() or not (FRONTEND / "node_modules" / "lightweight-charts").exists()
+    package_json = FRONTEND / "package.json"
+    chart_package = FRONTEND / "node_modules" / "lightweight-charts" / "package.json"
+    dependencies_missing = not (FRONTEND / "node_modules").exists() or not chart_package.exists()
     if dependencies_missing:
-        print("[stock] Frontend dependencies are missing or outdated. Installing them...")
+        print("[stock] Frontend dependencies are missing. Installing them...")
         result = subprocess.run([npm, "install"], cwd=FRONTEND, env=env)
         if result.returncode != 0:
             raise SystemExit("Frontend dependency installation failed.")
