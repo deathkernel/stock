@@ -29,7 +29,7 @@ def decision_snapshot(
     """Build a transparent BUY/SELL/HOLD research signal.
 
     Components:
-      forecast_return 30%
+      forecast_return 25%
       trend            20%
       model_consensus  20%
       validation       15%
@@ -59,7 +59,7 @@ def decision_snapshot(
     model_consensus = sum(model_signals) / len(model_signals) if model_signals else forecast_signal
 
     raw_score = (
-        0.30 * forecast_signal
+        0.25 * forecast_signal
         + 0.20 * trend_signal
         + 0.20 * model_consensus
         + 0.15 * validation_strength
@@ -99,7 +99,7 @@ def decision_snapshot(
             "data_quality": round(_clip(2.0 * float(data_quality) - 1.0, -1.0, 1.0), 4),
         },
         "weights": {
-            "forecast_return": 0.30,
+            "forecast_return": 0.25,
             "trend": 0.20,
             "model_consensus": 0.20,
             "validation": 0.15,
