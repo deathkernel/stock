@@ -9,6 +9,7 @@ from backend.analytics.regime import detect_regime
 from backend.analytics.confidence import confidence_score
 from backend.analytics.scenarios import scenarios
 from backend.analytics.ml import train_gradient_forecast
+from backend.analytics.advanced_ml import evaluate_candidates, feature_importance
 from backend.analytics.fusion_features import attach_research_features
 from backend.analytics.fused_ml import train_fused_forecast
 from backend.providers.fundamentals import FundamentalsClient
@@ -59,10 +60,14 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
             fc["last_price"] = float(f["close"].iloc[-1])
             ml = None
             fused_ml = None
+            model_comparison = None
+            importance = None
             ml_error = None
             try:
                 ml = train_gradient_forecast(f, horizon).__dict__
                 fused_ml = train_fused_forecast(fused, horizon).__dict__
+                model_comparison = evaluate_candidates(f, horizon)
+                importance = feature_importance(f, horizon)
             except RuntimeError as exc:
                 if "scikit-learn is unavailable" in str(exc):
                     ml_error = str(exc)
@@ -93,6 +98,8 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
                 "forecast": fc,
                 "ml_forecast": ml,
                 "fused_ml_forecast": fused_ml,
+                "model_comparison": model_comparison,
+                "feature_importance": importance,
                 "ml_status": "unavailable" if ml_error else "available",
                 "ml_error": ml_error,
                 "fundamentals": fundamentals,
