@@ -101,9 +101,13 @@ async def research(symbol: str, horizon: int = 5, outputsize: int = 500):
             history = [
                 {
                     "date": row["date"].isoformat() if hasattr(row["date"], "isoformat") else str(row["date"]),
+                    "open": float(row["open"]),
+                    "high": float(row["high"]),
+                    "low": float(row["low"]),
                     "close": float(row["close"]),
+                    "volume": float(row.get("volume", 0) or 0),
                 }
-                for _, row in result.data.tail(250).iterrows()
+                for _, row in result.data.tail(500).iterrows()
             ]
             return {
                 "symbol": symbol,
