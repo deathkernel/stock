@@ -53,3 +53,7 @@ The platform now includes a portfolio research layer with:
 - a simple dashboard portfolio risk lab
 
 Portfolio outputs are historical/statistical risk measures and scenario estimates. They are not guaranteed loss limits or personalized financial advice.
+
+
+## Interactive research dashboard
+The dashboard now includes a historical price visualization, a forecast estimate marker with uncertainty range, validation evidence cards, risk/scenario cards, and a portfolio risk-contribution view. Historical chart data is limited to a recent window for responsive rendering.
