@@ -338,6 +338,7 @@ function App() {
                 <span>Confidence</span><strong>{confidence?.label || "—"}</strong>
                 <span>Annual risk</span><strong>{risk ? (risk.annualized_volatility * 100).toFixed(1) + "%" : "—"}</strong>
                 <span>Quality</span><strong>{data?.data_quality?.score != null ? (data.data_quality.score * 100).toFixed(0) + "%" : "—"}</strong>
+                <span>Source agreement</span><strong>{data?.source_consensus?.provider_agreement != null ? (data.source_consensus.provider_agreement * 100).toFixed(0) + "%" : "—"}</strong>
               </div>
             </div>
           )}
@@ -360,6 +361,7 @@ function App() {
             <Metric label="Outlook" value={outlook} help="Composite research classification." />
             <Metric label="Estimated price" value={forecast ? Number(forecast.point).toFixed(2) : "—"} help="Model estimate, not a guarantee." />
             <Metric label="Confidence" value={confidence?.label || "—"} help="Combines data quality, model agreement and validation." />
+            <Metric label="Source agreement" value={data?.source_consensus?.provider_agreement != null ? (data.source_consensus.provider_agreement * 100).toFixed(0) + "%" : "—"} help="Agreement among successful independent market-data providers." />
             <Metric label="Directional accuracy" value={backtest ? (backtest.directional_accuracy * 100).toFixed(1) + "%" : "—"} help="Historical walk-forward direction accuracy." />
           </div>
         )}
