@@ -7,7 +7,7 @@ from backend.data.normalize import normalize_ohlcv
 
 class ProviderOrchestrator:
     def __init__(self):
-        self.providers=[AlphaVantageProvider(),TwelveDataProvider(),FinnhubProvider(),YahooFinanceProvider(),StooqProvider()]
+        self.providers=[YahooFinanceProvider(),StooqProvider(),AlphaVantageProvider(),TwelveDataProvider(),FinnhubProvider()]
     async def history(self,symbol:str,outputsize:int=500):
         errors=[]
         for provider in self.providers:
