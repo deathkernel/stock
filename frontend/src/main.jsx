@@ -54,12 +54,26 @@ function App() {
     setData(null);
     try {
       const encoded = encodeURIComponent(selected);
+      let historyPayload;
       const historyResponse = await fetch(
         API_BASE_URL + "/api/market/" + encoded + "/history?outputsize=500"
       );
-      const historyPayload = await historyResponse.json();
-      if (!historyResponse.ok) {
-        throw new Error(historyPayload.detail || "Market data search failed");
+
+      if (historyResponse.ok) {
+        historyPayload = await historyResponse.json();
+      } else {
+        const fallbackResponse = await fetch(
+          API_BASE_URL + "/api/market/" + encoded + "/research?horizon=5&outputsize=500"
+        );
+        const fallbackPayload = await fallbackResponse.json();
+        if (!fallbackResponse.ok) {
+          throw new Error(
+            fallbackPayload.detail || "Market data search failed. Restart the backend and verify the data provider."
+          );
+        }
+        setData(fallbackPayload);
+        setWatchlist((items) => Array.from(new Set([selected, ...items])));
+        return;
       }
 
       const fastData = {
