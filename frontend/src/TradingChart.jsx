@@ -25,6 +25,79 @@ function businessDaysAfter(value, count) {
   return date.toISOString().slice(0, 10);
 }
 
+function bollingerBands(values, period = 20, multiplier = 2) {
+  const output = [];
+  for (let i = period - 1; i < values.length; i += 1) {
+    const slice = values.slice(i - period + 1, i + 1).map((row) => row.close);
+    const middle = slice.reduce((sum, value) => sum + value, 0) / period;
+    const variance = slice.reduce((sum, value) => sum + (value - middle) ** 2, 0) / period;
+    const std = Math.sqrt(variance);
+    output.push({
+      time: values[i].time,
+      upper: middle + multiplier * std,
+      middle,
+      lower: middle - multiplier * std,
+    });
+  }
+  return output;
+}
+
+function relativeStrengthIndex(values, period = 14) {
+  if (values.length <= period) return [];
+  const output = [];
+  let gains = 0;
+  let losses = 0;
+
+  for (let i = 1; i <= period; i += 1) {
+    const change = values[i].close - values[i - 1].close;
+    gains += Math.max(change, 0);
+    losses += Math.max(-change, 0);
+  }
+
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+
+  for (let i = period; i < values.length; i += 1) {
+    if (i > period) {
+      const change = values[i].close - values[i - 1].close;
+      avgGain = ((avgGain * (period - 1)) + Math.max(change, 0)) / period;
+      avgLoss = ((avgLoss * (period - 1)) + Math.max(-change, 0)) / period;
+    }
+    const rs = avgLoss === 0 ? Infinity : avgGain / avgLoss;
+    output.push({
+      time: values[i].time,
+      value: avgLoss === 0 ? 100 : 100 - 100 / (1 + rs),
+    });
+  }
+  return output;
+}
+
+function macd(values) {
+  const fast = exponentialMovingAverage(values, 12);
+  const slow = exponentialMovingAverage(values, 26);
+  if (!fast.length || !slow.length) return { line: [], signal: [], histogram: [] };
+
+  const slowMap = new Map(slow.map((row) => [row.time, row.value]));
+  const line = fast
+    .filter((row) => slowMap.has(row.time))
+    .map((row) => ({ time: row.time, value: row.value - slowMap.get(row.time) }));
+
+  const signal = exponentialMovingAverage(
+    line.map((row) => ({ ...row, close: row.value })),
+    9,
+  );
+  const signalMap = new Map(signal.map((row) => [row.time, row.value]));
+  const histogram = line
+    .filter((row) => signalMap.has(row.time))
+    .map((row) => ({
+      time: row.time,
+      value: row.value - signalMap.get(row.time),
+      color: row.value >= signalMap.get(row.time) ? "#26a69a99" : "#ef535099",
+    }));
+
+  return { line, signal, histogram };
+}
+
 function movingAverage(values, period, key) {
   const output = [];
   for (let i = period - 1; i < values.length; i += 1) {
