@@ -6,7 +6,7 @@ router = APIRouter()
 
 @router.get("/status")
 def status():
-    return {"status": "ready", "modules": ["providers", "technical", "forecast", "risk", "decision"]}
+    return {"status": "ready", "modules": ["providers", "technical", "forecast", "risk", "portfolio", "decision"]}
 
 @router.post("/decision")
 def decision(payload: dict):
