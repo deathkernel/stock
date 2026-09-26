@@ -33,7 +33,8 @@ function RiskBars({risk}){
 }
 
 function App(){
-  const API_BASE_URL=(import.meta.env.VITE_API_BASE_URL||"http://127.0.0.1:8000").replace(/\/$/,"");\n  const [symbol,setSymbol]=useState(""); const [data,setData]=useState(null);
+  const API_BASE_URL=(import.meta.env.VITE_API_BASE_URL||"http://127.0.0.1:8000").replace(/\/$/,"");
+  const [symbol,setSymbol]=useState(""); const [data,setData]=useState(null);
   const [loading,setLoading]=useState(false); const [error,setError]=useState(""); const [advanced,setAdvanced]=useState(false);
   const [portfolioInput,setPortfolioInput]=useState("AAPL:60, MSFT:40"); const [portfolio,setPortfolio]=useState(null); const [portfolioLoading,setPortfolioLoading]=useState(false);
 
