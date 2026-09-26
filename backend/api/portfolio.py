@@ -20,7 +20,9 @@ def portfolio_analyze(payload: dict):
 @router.post("/analyze-symbols")
 async def portfolio_analyze_symbols(payload: dict):
     try:
-        positions = payload.get("positions", [])\n        if len(positions) > 30:\n            raise ValueError("A maximum of 30 portfolio positions is supported")
+        positions = payload.get("positions", [])
+        if len(positions) > 30:
+            raise ValueError("A maximum of 30 portfolio positions is supported")
         if not positions:
             raise ValueError("At least one position is required")
         outputsize = min(max(int(payload.get("outputsize", 500)), 100), 2000)
