@@ -40,4 +40,11 @@ class NewsItem(Base):
     url:Mapped[str]=mapped_column(Text)
     sentiment:Mapped[float]=mapped_column(Float)
 
+def check_db() -> bool:
+    from sqlalchemy import text
+    with engine.connect() as connection:
+        connection.execute(text("SELECT 1"))
+    return True
+
+
 def init_db(): Base.metadata.create_all(engine)
