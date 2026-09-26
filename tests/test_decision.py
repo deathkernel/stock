@@ -54,3 +54,24 @@ def test_high_volatility_reduces_conviction():
         volatility=0.90,
     )
     assert volatile["conviction"] < calm["conviction"]
+
+
+def test_research_levels_use_atr_and_signal_direction():
+    from backend.analytics.trade_levels import research_levels
+
+    buy = research_levels(last_price=100, forecast_price=112, atr_14=4, signal="STRONG BUY")
+    sell = research_levels(last_price=100, forecast_price=88, atr_14=4, signal="STRONG SELL")
+    hold = research_levels(last_price=100, forecast_price=101, atr_14=4, signal="HOLD")
+
+    assert buy["direction"] == "long"
+    assert buy["entry_zone"]["low"] < 100 < buy["entry_zone"]["high"]
+    assert buy["invalidation"] < 100
+    assert buy["target"] == 112
+    assert buy["risk_reward"] > 0
+
+    assert sell["direction"] == "short"
+    assert sell["invalidation"] > 100
+    assert sell["target"] == 88
+
+    assert hold["direction"] == "neutral"
+    assert hold["invalidation"] is None
