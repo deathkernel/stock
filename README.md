@@ -38,3 +38,18 @@ Provider credentials are loaded from environment variables and never committed.
 10. React research dashboard
 11. Explainable AI analyst
 12. Tests, documentation and deployment
+
+
+## Portfolio intelligence
+The platform now includes a portfolio research layer with:
+- normalized multi-asset weights and overlapping return history
+- correlation matrix and concentration metrics
+- annualized return/volatility, Sharpe ratio, and maximum drawdown
+- historical Value at Risk (VaR) and Conditional VaR (CVaR)
+- benchmark beta when benchmark history is supplied
+- per-position risk contribution estimates
+- deterministic stress scenarios for market shocks and volatility shocks
+- FastAPI endpoints for direct price-series analysis and symbol-based provider-backed analysis
+- a simple dashboard portfolio risk lab
+
+Portfolio outputs are historical/statistical risk measures and scenario estimates. They are not guaranteed loss limits or personalized financial advice.
