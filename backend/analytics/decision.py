@@ -24,6 +24,7 @@ def decision_snapshot(
     news_sentiment: float = 0.0,
     ml_prices: list[float] | None = None,
     volatility: float = 0.0,
+    source_agreement: float = 1.0,
 ) -> dict:
     """Build a transparent BUY/SELL/HOLD research signal.
 
@@ -33,7 +34,8 @@ def decision_snapshot(
       model_consensus  20%
       validation       15%
       sentiment        10%
-      data_quality      5%
+      source agreement   5%
+      data quality       5%
 
     Volatility attenuates conviction rather than changing the raw direction.
     """
@@ -62,6 +64,7 @@ def decision_snapshot(
         + 0.20 * model_consensus
         + 0.15 * validation_strength
         + 0.10 * sentiment_signal
+        + 0.05 * _clip(2.0 * float(source_agreement) - 1.0, -1.0, 1.0)
         + 0.05 * _clip(2.0 * float(data_quality) - 1.0, -1.0, 1.0)
     )
 
@@ -92,6 +95,7 @@ def decision_snapshot(
             "model_consensus": round(model_consensus, 4),
             "validation": round(validation_strength, 4),
             "news_sentiment": round(sentiment_signal, 4),
+            "source_agreement": round(_clip(2.0 * float(source_agreement) - 1.0, -1.0, 1.0), 4),
             "data_quality": round(_clip(2.0 * float(data_quality) - 1.0, -1.0, 1.0), 4),
         },
         "weights": {
@@ -100,6 +104,7 @@ def decision_snapshot(
             "model_consensus": 0.20,
             "validation": 0.15,
             "news_sentiment": 0.10,
+            "source_agreement": 0.05,
             "data_quality": 0.05,
         },
         "volatility_penalty": round(volatility_penalty, 4),
