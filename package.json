@@ -1,0 +1,8 @@
+{
+  "name": "stock-intelligence",
+  "private": true,
+  "scripts": {
+    "dev": "python run.py",
+    "start": "python run.py"
+  }
+}
